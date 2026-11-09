@@ -13,21 +13,25 @@ Backend REST API yang dibangun menggunakan **Bun**, **ElysiaJS**, **Drizzle ORM*
 
 ## 📁 Struktur Direktori
 ```text
-├── drizzle/              # File migrasi SQL hasil generate Drizzle
+├── drizzle/                      # File migrasi SQL hasil generate Drizzle
 ├── src/
 │   ├── db/
-│   │   ├── index.ts      # Inisialisasi koneksi MySQL & client Drizzle
+│   │   ├── index.ts              # Inisialisasi koneksi MySQL & client Drizzle
 │   │   └── schema/
-│   │       ├── index.ts  # Export semua skema tabel
-│   │       └── users.ts  # Definisi skema tabel users
+│   │       ├── index.ts          # Export semua skema tabel
+│   │       └── users.ts          # Skema tabel users (id, name, email, password, created_at)
 │   ├── routes/
-│   │   ├── health.ts     # Health check endpoint (/health)
-│   │   └── users.ts      # User CRUD endpoints (/users)
-│   └── index.ts          # Entry point server Elysia
-├── .env.example          # Template konfigurasi environment
-├── drizzle.config.ts     # Konfigurasi Drizzle ORM
-├── package.json          # Dependency & npm scripts
-└── tsconfig.json         # Konfigurasi TypeScript
+│   │   ├── health.ts             # Health check endpoint (/health)
+│   │   └── users-route.ts        # Endpoint registrasi user (/api/user)
+│   ├── services/
+│   │   └── users-services.ts     # Business logic, validasi duplikat & hashing bcrypt
+│   └── index.ts                  # Entry point server Elysia
+├── tests/
+│   └── users-registration.test.ts # Automated test suite (bun:test)
+├── .env.example                  # Template konfigurasi environment
+├── drizzle.config.ts             # Konfigurasi Drizzle ORM
+├── package.json                  # Dependency & npm scripts
+└── tsconfig.json                 # Konfigurasi TypeScript
 ```
 
 ---
@@ -67,7 +71,12 @@ Buka Drizzle Studio untuk inspeksi visual tabel:
 bun run db:studio
 ```
 
-### 4. Menjalankan Server
+### 4. Menjalankan Automated Test
+```bash
+bun test
+```
+
+### 5. Menjalankan Server
 Mode Development (hot-reload):
 ```bash
 bun run dev
@@ -82,9 +91,8 @@ bun run start
 
 ## 📡 API Endpoints
 
-| Method | Endpoint | Deskripsi |
-|---|---|---|
-| `GET` | `/` | Root greeting & metadata API |
-| `GET` | `/health` | Server health check & uptime |
-| `GET` | `/users` | Mengambil daftar pengguna |
-| `POST` | `/users` | Menambahkan pengguna baru (`{ name, email }`) |
+| Method | Endpoint | Deskripsi | Request Body / Response |
+|---|---|---|---|
+| `GET` | `/` | Root greeting & metadata API | - |
+| `GET` | `/health` | Server health check & uptime | - |
+| `POST` | `/api/user` | Registrasi user baru | Body: `{"name":"obi","email":"obi@gmail.com","password":"obi2123"}`<br>Sukses (`200`): `{"data":"ok"}`<br>Gagal (`400`): `{"error":"email sudah terdaftar"}` |

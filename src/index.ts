@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { healthRoutes } from "./routes/health";
-import { userRoutes } from "./routes/users";
+import { usersRoute } from "./routes/users-route";
 
 const port = Number(process.env.PORT) || 3000;
 
@@ -11,13 +11,12 @@ const app = new Elysia()
     name: "Belajar Vibe Coding API",
     version: "1.0.0",
     health: "/health",
-    users: "/users",
+    register: "POST /api/user",
   }))
   .use(healthRoutes)
-  .use(userRoutes)
+  .use(usersRoute)
   .listen(port);
 
 console.log(`🦊 Elysia server is running at http://${app.server?.hostname}:${app.server?.port}`);
 
 export type App = typeof app;
-
