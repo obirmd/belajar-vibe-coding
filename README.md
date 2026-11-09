@@ -19,15 +19,17 @@ Backend REST API yang dibangun menggunakan **Bun**, **ElysiaJS**, **Drizzle ORM*
 │   │   ├── index.ts              # Inisialisasi koneksi MySQL & client Drizzle
 │   │   └── schema/
 │   │       ├── index.ts          # Export semua skema tabel
-│   │       └── users.ts          # Skema tabel users (id, name, email, password, created_at)
+│   │       ├── users.ts          # Skema tabel users (id, name, email, password, created_at)
+│   │       └── sessions.ts       # Skema tabel sessions (id, token, user_id, created_at)
 │   ├── routes/
 │   │   ├── health.ts             # Health check endpoint (/health)
-│   │   └── users-route.ts        # Endpoint registrasi user (/api/user)
+│   │   └── users-route.ts        # Endpoint registrasi user (/api/user) & login (/api/user/login)
 │   ├── services/
-│   │   └── users-services.ts     # Business logic, validasi duplikat & hashing bcrypt
+│   │   └── users-services.ts     # Business logic, validasi duplikat, session token & hashing bcrypt
 │   └── index.ts                  # Entry point server Elysia
 ├── tests/
-│   └── users-registration.test.ts # Automated test suite (bun:test)
+│   ├── users-registration.test.ts # Automated test registrasi user
+│   └── users-login.test.ts        # Automated test login user & session token
 ├── .env.example                  # Template konfigurasi environment
 ├── drizzle.config.ts             # Konfigurasi Drizzle ORM
 ├── package.json                  # Dependency & npm scripts
@@ -96,3 +98,4 @@ bun run start
 | `GET` | `/` | Root greeting & metadata API | - |
 | `GET` | `/health` | Server health check & uptime | - |
 | `POST` | `/api/user` | Registrasi user baru | Body: `{"name":"obi","email":"obi@gmail.com","password":"obi2123"}`<br>Sukses (`200`): `{"data":"ok"}`<br>Gagal (`400`): `{"error":"email sudah terdaftar"}` |
+| `POST` | `/api/user/login` | Login user & generate session token | Body: `{"email":"obi@gmail.com","password":"obi2123"}`<br>Sukses (`200`): `{"data":"<uuid-token>"}`<br>Gagal (`400`): `{"error":"email atau password salah"}` |
