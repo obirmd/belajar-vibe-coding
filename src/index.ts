@@ -12,6 +12,7 @@ const app = new Elysia()
     version: "1.0.0",
     health: "/health",
     register: "POST /api/user",
+    login: "POST /api/user/login",
   }))
   .use(healthRoutes)
   .use(usersRoute)

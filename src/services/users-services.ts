@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { users } from "../db/schema";
+import { sessions, users } from "../db/schema";
 
 export interface RegisterUserInput {
   name: string;
@@ -11,6 +11,15 @@ export interface RegisterUserInput {
 export type RegisterUserResult =
   | { success: true; data: "ok" }
   | { success: false; error: string; code: "EMAIL_EXISTS" | "INTERNAL_ERROR" };
+
+export interface LoginUserInput {
+  email: string;
+  password: string;
+}
+
+export type LoginUserResult =
+  | { success: true; data: string }
+  | { success: false; error: string; code: "INVALID_CREDENTIALS" | "INTERNAL_ERROR" };
 
 export class UsersService {
   async registerUser(input: RegisterUserInput): Promise<RegisterUserResult> {
@@ -43,6 +52,55 @@ export class UsersService {
       return {
         success: true,
         data: "ok",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Terjadi kesalahan pada server",
+        code: "INTERNAL_ERROR",
+      };
+    }
+  }
+
+  async loginUser(input: LoginUserInput): Promise<LoginUserResult> {
+    try {
+      const userList = await db
+        .select({
+          id: users.id,
+          password: users.password,
+        })
+        .from(users)
+        .where(eq(users.email, input.email))
+        .limit(1);
+
+      const user = userList[0];
+      if (!user) {
+        return {
+          success: false,
+          error: "email atau password salah",
+          code: "INVALID_CREDENTIALS",
+        };
+      }
+
+      const isPasswordValid = await Bun.password.verify(input.password, user.password);
+      if (!isPasswordValid) {
+        return {
+          success: false,
+          error: "email atau password salah",
+          code: "INVALID_CREDENTIALS",
+        };
+      }
+
+      const token = crypto.randomUUID();
+
+      await db.insert(sessions).values({
+        token,
+        userId: user.id,
+      });
+
+      return {
+        success: true,
+        data: token,
       };
     } catch (error) {
       return {
