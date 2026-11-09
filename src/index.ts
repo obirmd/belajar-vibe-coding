@@ -1,4 +1,5 @@
 import { Elysia } from "elysia";
+import { swagger } from "@elysiajs/swagger";
 import { cors } from "@elysiajs/cors";
 import { healthRoutes } from "./routes/health";
 import { usersRoute } from "./routes/users-route";
@@ -18,6 +19,16 @@ const app = new Elysia()
   }))
   .use(healthRoutes)
   .use(usersRoute)
+  .use(swagger({
+    documentation: {
+      info: {
+        title: "Belajar Vibe Coding API",
+        version: "1.0.0",
+        description: "Backend REST API built with Bun, ElysiaJS, Drizzle ORM, and MySQL. Includes registration, login, profile, and logout endpoints."
+      }
+    },
+    path: "/swagger"
+  }))
   .listen(port);
 
 console.log(`🦊 Elysia server is running at http://${app.server?.hostname}:${app.server?.port}`);
