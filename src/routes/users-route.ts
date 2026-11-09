@@ -1,0 +1,28 @@
+import { Elysia, t } from "elysia";
+import { usersService } from "../services/users-services";
+
+export const usersRoute = new Elysia({ prefix: "/api/user" }).post(
+  "/",
+  {
+    body: t.Object({
+      name: t.String({ minLength: 1, error: "name wajib diisi" }),
+      email: t.String({ format: "email", error: "format email tidak valid" }),
+      password: t.String({ minLength: 1, error: "password wajib diisi" }),
+    }),
+  },
+  async ({ body, set }: { body: { name: string; email: string; password: string }; set: { status?: number | string } }) => {
+    const result = await usersService.registerUser(body);
+
+    if (!result.success) {
+      if (result.code === "EMAIL_EXISTS") {
+        set.status = 400;
+        return { error: result.error };
+      }
+      set.status = 500;
+      return { error: result.error };
+    }
+
+    set.status = 200;
+    return { data: result.data };
+  }
+);
