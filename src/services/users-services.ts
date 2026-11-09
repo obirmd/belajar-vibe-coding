@@ -21,6 +21,21 @@ export type LoginUserResult =
   | { success: true; data: string }
   | { success: false; error: string; code: "INVALID_CREDENTIALS" | "INTERNAL_ERROR" };
 
+export interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+  createdAt: Date;
+}
+
+export type GetUserResult =
+  | { success: true; user: UserProfile }
+  | { success: false; error: "unauthorized" | string };
+
+export type LogoutResult =
+  | { success: true; data: "logout sukses" }
+  | { success: false; error: "unauthorized" | string };
+
 export class UsersService {
   async registerUser(input: RegisterUserInput): Promise<RegisterUserResult> {
     try {
@@ -107,6 +122,56 @@ export class UsersService {
         success: false,
         error: error instanceof Error ? error.message : "Terjadi kesalahan pada server",
         code: "INTERNAL_ERROR",
+      };
+    }
+  }
+
+  async getUserByToken(token: string): Promise<GetUserResult> {
+    try {
+      const result = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          createdAt: users.createdAt,
+        })
+        .from(sessions)
+        .innerJoin(users, eq(sessions.userId, users.id))
+        .where(eq(sessions.token, token))
+        .limit(1);
+
+      const user = result[0];
+      if (!user) {
+        return {
+          success: false,
+          error: "unauthorized",
+        };
+      }
+
+      return {
+        success: true,
+        user,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "unauthorized",
+      };
+    }
+  }
+
+  async logoutUser(token: string): Promise<LogoutResult> {
+    try {
+      await db.delete(sessions).where(eq(sessions.token, token));
+
+      return {
+        success: true,
+        data: "logout sukses",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Terjadi kesalahan pada server",
       };
     }
   }

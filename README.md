@@ -21,15 +21,18 @@ Backend REST API yang dibangun menggunakan **Bun**, **ElysiaJS**, **Drizzle ORM*
 │   │       ├── index.ts          # Export semua skema tabel
 │   │       ├── users.ts          # Skema tabel users (id, name, email, password, created_at)
 │   │       └── sessions.ts       # Skema tabel sessions (id, token, user_id, created_at)
+│   ├── middlewares/
+│   │   └── auth-middleware.ts    # Middleware autentikasi token Bearer session
 │   ├── routes/
 │   │   ├── health.ts             # Health check endpoint (/health)
-│   │   └── users-route.ts        # Endpoint registrasi user (/api/user) & login (/api/user/login)
+│   │   └── users-route.ts        # Endpoint user (registrasi, login, me, logout)
 │   ├── services/
 │   │   └── users-services.ts     # Business logic, validasi duplikat, session token & hashing bcrypt
 │   └── index.ts                  # Entry point server Elysia
 ├── tests/
 │   ├── users-registration.test.ts # Automated test registrasi user
-│   └── users-login.test.ts        # Automated test login user & session token
+│   ├── users-login.test.ts        # Automated test login user & session token
+│   └── users-auth.test.ts         # Automated test auth middleware, GET /me & logout
 ├── .env.example                  # Template konfigurasi environment
 ├── drizzle.config.ts             # Konfigurasi Drizzle ORM
 ├── package.json                  # Dependency & npm scripts
@@ -93,9 +96,11 @@ bun run start
 
 ## 📡 API Endpoints
 
-| Method | Endpoint | Deskripsi | Request Body / Response |
-|---|---|---|---|
-| `GET` | `/` | Root greeting & metadata API | - |
-| `GET` | `/health` | Server health check & uptime | - |
-| `POST` | `/api/user` | Registrasi user baru | Body: `{"name":"obi","email":"obi@gmail.com","password":"obi2123"}`<br>Sukses (`200`): `{"data":"ok"}`<br>Gagal (`400`): `{"error":"email sudah terdaftar"}` |
-| `POST` | `/api/user/login` | Login user & generate session token | Body: `{"email":"obi@gmail.com","password":"obi2123"}`<br>Sukses (`200`): `{"data":"<uuid-token>"}`<br>Gagal (`400`): `{"error":"email atau password salah"}` |
+| Method | Endpoint | Auth | Deskripsi | Request Body / Response |
+|---|---|:---:|---|---|
+| `GET` | `/` | No | Root greeting & metadata API | - |
+| `GET` | `/health` | No | Server health check & uptime | - |
+| `POST` | `/api/user` | No | Registrasi user baru | Body: `{"name":"obi","email":"obi@gmail.com","password":"obi2123"}`<br>Sukses (`200`): `{"data":"ok"}`<br>Gagal (`400`): `{"error":"email sudah terdaftar"}` |
+| `POST` | `/api/user/login` | No | Login user & generate session token | Body: `{"email":"obi@gmail.com","password":"obi2123"}`<br>Sukses (`200`): `{"data":"<uuid-token>"}`<br>Gagal (`400`): `{"error":"email atau password salah"}` |
+| `GET` | `/api/user/me` | Yes (`Bearer <token>`) | Mengambil profil user yang sedang login | Sukses (`200`): `{"data":{"id":1,"name":"obi","email":"...","createdAt":"..."}}`<br>Gagal (`401`): `{"error":"unauthorized"}` |
+| `DELETE` | `/api/user/logout` | Yes (`Bearer <token>`) | Menghapus sesi login (logout) | Sukses (`200`): `{"data":"logout sukses"}`<br>Gagal (`401`): `{"error":"unauthorized"}` |

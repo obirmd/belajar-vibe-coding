@@ -1,7 +1,9 @@
 import { Elysia, t } from "elysia";
 import { usersService } from "../services/users-services";
+import { authMiddleware } from "../middlewares/auth-middleware";
 
 export const usersRoute = new Elysia({ prefix: "/api/user" })
+  .use(authMiddleware)
   .post(
     "/",
     {
@@ -62,4 +64,24 @@ export const usersRoute = new Elysia({ prefix: "/api/user" })
       set.status = 200;
       return { data: result.data };
     }
-  );
+  )
+  .get("/me", async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: "unauthorized" };
+    }
+
+    set.status = 200;
+    return { data: user };
+  })
+  .delete("/logout", async ({ user, token, set }) => {
+    if (!user || !token) {
+      set.status = 401;
+      return { error: "unauthorized" };
+    }
+
+    await usersService.logoutUser(token);
+
+    set.status = 200;
+    return { data: "logout sukses" };
+  });

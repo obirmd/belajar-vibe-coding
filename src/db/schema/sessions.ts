@@ -9,3 +9,4 @@ export const sessions = mysqlTable("sessions", {
     .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
